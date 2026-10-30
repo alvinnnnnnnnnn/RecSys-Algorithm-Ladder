@@ -28,25 +28,28 @@ dataset with the same evaluation
   watched are hidden, and we check where the held-out test movie lands.
 - **Metrics:** Recall@K and NDCG@K
 
-## Results so far
-
-Only step 1 is done.
+## Results
 
 | Model | Recall@10 | NDCG@10 | Recall@20 | NDCG@20 |
 |---|---|---|---|---|
 | Popularity | 0.0369 | 0.0180 | 0.0684 | 0.0259 |
-| Item-kNN | - | - | - | - |
+| Item-kNN (k = 5) | 0.0818 | 0.0402 | 0.1328 | 0.0530 |
 | MF-BPR | - | - | - | - |
 | Two-tower | - | - | - | - |
 | SASRec | - | - | - | - |
 
 ## Models
-### Popularity 
-- Everyone gets the same ranking: movies ordered by how many training users watched them, minus the ones that user has already seen.
+### 1. Popularity 
+- Every user gets the same list of movie rankings: movies ordered by how many training users watched them, minus the ones that user has already seen.
 - The validation split isn't used by Popularity, since there is nothing to tune. It starts to matter with Item-kNN (choosing k) and MF (early stopping)
 - Recall@20 is 6.8%, so for about 7 users in 100 the next movie they watched was in their top 20.
 - A random list of 20 out of about 3,400 movies would hit about 0.6% of the time, so Popularity is roughly 11 times better than random.
 - NDCG@20 (2.6%) is well below Recall@20, meaning that when it hits, the movie tends to sit lower in the top 20 rather than at the very top.
 - Popularity is a surprisingly strong floor for a model that learns nothing. Most users' next movie isn't one with high ratings
 
-## Item-KNN
+## 2. Item-kNN
+- Different users get different recommendations: if user A watches movies 1 and 2, and other users who watch movie 1 and 2 also watch movie 3, then movie 3 is given a higher score for user A
+- In Item-kNN, k is the number of neighbours each movie is allowed to keep. A movie's neighbours are the other movies most similar to it
+- Small k: only the strongest links count. Less noise, but each movie recommends only a few others. Large k: lots of weak links count, more noise 
+- k was tuned on the validation set over [4, 5, 10, 20, 30, 50, 100, 150, 200]. The best was k = 5, so only each movie's few strongest neighbours carry signal.
+- Item-kNN roughly doubles Popularity's scores on every metric.
